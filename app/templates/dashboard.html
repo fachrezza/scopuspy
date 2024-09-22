@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/articles">Articles</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Dashboard</h1>
+        <form action="/dashboard" method="get" class="form-inline mb-4">
+            <label for="faculty" class="mr-2">Filter Fakultas:</label>
+            <select id="faculty" name="faculty" class="form-control mr-2" onchange="updateProgramStudi(this.value)">
+                <option value="">------------ PILIH FAKULTAS ------------</option>
+                <option value="Teknik" {% if selected_faculty == 'Teknik' %}selected{% endif %}>Fakultas Teknik</option>
+                <option value="Ilmu Sosial dan Ilmu Politik" {% if selected_faculty == 'Ilmu Sosial dan Ilmu Politik' %}selected{% endif %}>Fakultas Ilmu Sosial dan Ilmu Politik</option>
+                <option value="Kedokteran dan Ilmu Kesehatan" {% if selected_faculty == 'Kedokteran dan Ilmu Kesehatan' %}selected{% endif %}>Fakultas Kedokteran dan Ilmu Kesehatan</option>
+                <option value="Pertanian" {% if selected_faculty == 'Pertanian' %}selected{% endif %}>Fakultas Pertanian</option>
+                <option value="Agama Islam" {% if selected_faculty == 'Agama Islam' %}selected{% endif %}>Fakultas Agama Islam</option>
+                <option value="Hukum" {% if selected_faculty == 'Hukum' %}selected{% endif %}>Fakultas Hukum</option>
+                <option value="Pendidikan Bahasa" {% if selected_faculty == 'Pendidikan Bahasa' %}selected{% endif %}>Fakultas Pendidikan Bahasa</option>
+                <option value="Ekonomi dan Bisnis" {% if selected_faculty == 'Ekonomi dan Bisnis' %}selected{% endif %}>Fakultas Ekonomi dan Bisnis</option>
+            </select>
+
+            <label for="program_studi" class="mr-2">Program Studi:</label>
+            <select id="program_studi" name="program_studi" class="form-control mr-2" onchange="this.form.submit()">
+                <option value="">------------ PILIH PROGRAM STUDI ------------</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </form>
+
+        <h2>Authors</h2>
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Author ID</th>
+                    <th>Author Name</th>
+                    <th>Faculty</th>
+                    <th>Program Studi</th>
+                    <th>Cited By</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for author in authors %}
+                <tr>
+                    <td>{{ author[0] }}</td>
+                    <td>{{ author[1] }}</td>
+                    <td>{{ author[4] }}</td>
+                    <td>{{ author[5] }}</td>
+                    <td>{{ author[3] }}</td>
+                    <td><a href="{{ author[2] }}" target="_blank">Link</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Faculty Chart</h2>
+        <canvas id="facultyChart"></canvas>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Chart.js Script -->
+    <script>
+        // Define the faculties and their corresponding program studi
+        const fakultasProgramStudi = {
+            "Teknik": ["Teknologi Informasi", "Teknik Elektro", "Teknik Sipil", "Teknik Mesin"],
+            "Ilmu Sosial dan Ilmu Politik": ["Ilmu Pemerintahan", "Ilmu HUbungan Internasional", "Ilmu Komunikasi"],
+            "Kedokteran dan Ilmu Kesehatan": ["Kedokteran Umum", "Keperawatan"],
+            "Pertanian": ["Agroteknologi", "Agribisnis"],
+            "Agama Islam": ["Pendidikan Agama Islam", "Syariah"],
+            "Hukum": ["Ilmu Hukum"],
+            "Pendidikan Bahasa": ["Pendidikan Bahasa Inggris", "Pendidikan Bahasa Indonesia"],
+            "Ekonomi dan Bisnis": ["Manajemen", "Akuntansi"]
+        };
+
+        // Function to update the program studi dropdown based on the selected faculty
+        function updateProgramStudi(fakultas) {
+            const programStudiSelect = document.getElementById('program_studi');
+            programStudiSelect.innerHTML = '<option value="">------------ PILIH PROGRAM STUDI ------------</option>';
+
+            if (fakultasProgramStudi[fakultas]) {
+                fakultasProgramStudi[fakultas].forEach(function(programStudi) {
+                    const option = document.createElement('option');
+                    option.value = programStudi;
+                    option.textContent = programStudi;
+                    programStudiSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Initialize the program studi dropdown if a faculty is already selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedFaculty = document.getElementById('faculty').value;
+            if (selectedFaculty) {
+                updateProgramStudi(selectedFaculty);
+            }
+        });
+    </script>
+</body>
+</html>

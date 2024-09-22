@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Articles</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/articles">Articles</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Articles</h1>
+        <form id="filter-form" action="/articles" method="get" class="form-inline mb-4">
+            <label for="faculty" class="mr-2">Faculty:</label>
+            <select id="faculty" name="faculty" class="form-control mr-2">
+                <option value="">------------ PILIH FAKULTAS ------------</option>
+                <option value="Teknik" {% if selected_faculty == 'Teknik' %}selected{% endif %}>Fakultas Teknik</option>
+                <option value="Ilmu Sosial dan Ilmu Politik" {% if selected_faculty == 'Ilmu Sosial dan Ilmu Politik' %}selected{% endif %}>Fakultas Ilmu Sosial dan Ilmu Politik</option>
+                <option value="Kedokteran dan Ilmu Kesehatan" {% if selected_faculty == 'Kedokteran dan Ilmu Kesehatan' %}selected{% endif %}>Fakultas Kedokteran dan Ilmu Kesehatan</option>
+                <option value="Pertanian" {% if selected_faculty == 'Pertanian' %}selected{% endif %}>Fakultas Pertanian</option>
+                <option value="Agama Islam" {% if selected_faculty == 'Agama Islam' %}selected{% endif %}>Fakultas Agama Islam</option>
+                <option value="Hukum" {% if selected_faculty == 'Hukum' %}selected{% endif %}>Fakultas Hukum</option>
+                <option value="Pendidikan Bahasa" {% if selected_faculty == 'Pendidikan Bahasa' %}selected{% endif %}>Fakultas Pendidikan Bahasa</option>
+                <option value="Ekonomi dan Bisnis" {% if selected_faculty == 'Ekonomi dan Bisnis' %}selected{% endif %}>Fakultas Ekonomi dan Bisnis</option>
+            </select>
+            
+            <label for="author" class="mr-2 ml-2">Author:</label>
+            <select id="author" name="author_id" class="form-control mr-2">
+                <option value="">------------ PILIH AUTHOR ------------</option>
+                {% for author in authors %}
+                <option value="{{ author[0] }}" {% if selected_author == author[0] %}selected{% endif %}>{{ author[1] }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Article Title</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                    <tr>
+                        <td>{{ article[0] }}</td>
+                        <td><a href="{{ article[1] }}" target="_blank">Read Article</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <!-- First Page -->
+                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('articles', faculty=selected_faculty, author_id=selected_author, page=1) }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <!-- Previous Page -->
+                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('articles', faculty=selected_faculty, author_id=selected_author, page=prev_page) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                
+                <!-- Page Numbers -->
+                {% if total_pages > 1 %}
+                    {% if current_page > 3 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    
+                    {% for page_num in range(current_page|max(1) - 2, current_page|min(total_pages) + 3) %}
+                    <li class="page-item {% if page_num == current_page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('articles', faculty=selected_faculty, author_id=selected_author, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if current_page < total_pages - 2 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endif %}
+                
+                <!-- Next Page -->
+                <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('articles', faculty=selected_faculty, author_id=selected_author, page=next_page) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <!-- Last Page -->
+                <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('articles', faculty=selected_faculty, author_id=selected_author, page=total_pages) }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        p {
+            margin: 0;
+            margin-bottom: 10px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .pagination {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <ul>
+        <li>
+            <h2>Author: {{ author.get('name', 'Unknown') }}</h2>
+            <p>Profile URL: <a href="{{ author.get('url', '#') }}">{{ author.get('url', 'Not available') }}</a></p>
+        </li>
+        <li>
+            <h2>Total Citations (All): {{cited_by.get("table", [{}])[0].get("citations", {}).get("all", 0)}}</h2>
+            <h2>Total Articles (All): {{ total_searches }}</h2>
+        </li>
+        {% for article in articles %}
+        <li>
+            <h2>{{ article.get('title', 'Unknown') }}</h2>
+            <p>Authors: {{ article.authors }}</p>
+            <p>Year: {{ article.get('year', 'Unknown') }}</p>
+            <p>Cited by: {{ article.cited_by.value }}</p>
+            <p><a href="{{ article.get('link', '#') }}">Read more</a></p>
+        </li>
+        {% endfor %}
+    </ul>
+
+
+
+    
+
+</body>
+</html>

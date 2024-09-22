@@ -1,0 +1,1 @@
+https://serpapi.com/search.json?engine=google_scholar_author&author_id=LSsXyncAAAAJ&api_key=e78b48857b1889d41ead1b7acecd713a5551d6aaaa05091f3d65e3df79a6e288&num=100&start=0

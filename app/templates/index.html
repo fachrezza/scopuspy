@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Author Search</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Author Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/articles">Articles</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <h1>Author Search</h1>
+    <form action="/search" method="post">
+        <label for="author_id">Enter Author ID:</label>
+        <input type="text" id="author_id" name="author_id" required><br>
+        <label for="faculty">Select Faculty:</label>
+        <select id="faculty" name="faculty" onchange="updateProgramStudi(this.value)">
+            <option value="">------------ PILIH FAKULTAS ------------</option>
+            <option value="Teknik">Fakultas Teknik</option>
+            <option value="Ilmu Sosial dan Ilmu Politik">Fakultas Ilmu Sosial dan Ilmu Politik</option>
+            <option value="Kedokteran dan Ilmu Kesehatan">Fakultas Kedokteran dan Ilmu Kesehatan</option>
+            <option value="Pertanian">Fakultas Pertanian</option>
+            <option value="Agama Islam">Fakultas Agama Islam</option>
+            <option value="Hukum">Fakultas Hukum</option>
+            <option value="Pendidikan Bahasa">Fakultas Pendidikan Bahasa</option>
+            <option value="Ekonomi dan Bisnis">Fakultas Ekonomi dan Bisnis</option>
+        </select>
+        <select id="program_studi" name="program_studi">
+            <option value="">------------ PILIH PROGRAM STUDI ------------</option>
+            <!-- Options will be populated by JavaScript -->
+        </select>
+        <button type="submit">Search</button>
+    </form>
+    <form>
+        <a href="/dashboard">Dashboard</a>
+    </form>
+    <script>
+        // Define the faculties and their corresponding program studi
+        const fakultasProgramStudi = {
+            "Teknik": ["Teknologi Informasi", "Teknik Elektro", "Teknik Sipil", "Teknik Mesin"],
+            "Ilmu Sosial dan Ilmu Politik": ["Ilmu Pemerintahan", "Ilmu HUbungan Internasional", "Ilmu Komunikasi"],
+            "Kedokteran dan Ilmu Kesehatan": ["Kedokteran Umum", "Keperawatan"],
+            "Pertanian": ["Agroteknologi", "Agribisnis"],
+            "Agama Islam": ["Pendidikan Agama Islam", "Syariah"],
+            "Hukum": ["Ilmu Hukum"],
+            "Pendidikan Bahasa": ["Pendidikan Bahasa Inggris", "Pendidikan Bahasa Indonesia"],
+            "Ekonomi dan Bisnis": ["Manajemen", "Akuntansi"]
+        };
+
+        // Function to update the program studi dropdown based on the selected faculty
+        function updateProgramStudi(fakultas) {
+            const programStudiSelect = document.getElementById('program_studi');
+            programStudiSelect.innerHTML = '<option value="">------------ PILIH PROGRAM STUDI ------------</option>';
+
+            if (fakultasProgramStudi[fakultas]) {
+                fakultasProgramStudi[fakultas].forEach(function(programStudi) {
+                    const option = document.createElement('option');
+                    option.value = programStudi;
+                    option.textContent = programStudi;
+                    programStudiSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Initialize the program studi dropdown if a faculty is already selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedFaculty = document.getElementById('faculty').value;
+            if (selectedFaculty) {
+                updateProgramStudi(selectedFaculty);
+            }
+        });
+    </script>
+</body>
+</html>
