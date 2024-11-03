@@ -1,8 +1,71 @@
-.navbar { background-color: #484848; }
-.navbar .navbar-nav .nav-link { color: #fff; }
-.navbar .navbar-nav .nav-link:hover { color: #fbc531; }
-.navbar .navbar-nav .active > .nav-link { color: #fbc531; }
 
-footer a.text-light:hover { color: #fed136!important; text-decoration: none; }
-footer .cizgi { border-right: 1px solid #535e67; }
-@media (max-width: 992px) { footer .cizgi { border-right: none; } }
+.navbar{
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000; /* Pastikan navbar tetap di atas elemen lain */
+    background-color: #f8f9fa; /* Warna latar navbar */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+.chart-ct{
+    display: grid;
+    grid-template-columns: 2fr; /* 1 kolom penuh */
+    gap: 10px; /* Jarak antar-elemen di dalam container */
+    width: 50%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    margin: 0 -20px 20px -0px;
+    border: solid 1px ;
+    border-color: black;
+    border-radius: 20px;
+
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card-container {
+    display: flex; /* Use flexbox for horizontal alignment */
+    justify-content: space-around; /* Space out cards evenly */
+    flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
+}
+
+.card {
+    background: #fff; /* White background */
+    border: 1px solid #ddd; /* Light gray border */
+    border-radius: 5px; /* Rounded corners */
+    width: 30%; /* Width of each card */
+    margin: 10px; /* Margin around each card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    display: flex; /* Flex display to align items vertically */
+    flex-direction: column; /* Column layout for card content */
+    align-items: center; /* Center items horizontally */
+}
+
+.card:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+.card-content {
+    padding: 15px; /* Padding inside the card */
+    text-align: center; /* Center text */
+}
+
+.card-title {
+    font-size: 1.5em;
+    margin: 0 0 10px;
+}
+
+.dashboard-title {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #333;
+
+}
+

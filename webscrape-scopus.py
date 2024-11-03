@@ -78,20 +78,41 @@ def search():
                 # Jika tidak ada, tambahkan author ke dalam tabel authors
                 author_name = author.get("name", "")
                 author_url = author.get("url", "")
+                
                 # Memeriksa dan menangani nilai yang hilang untuk cited_by
-                all_citations = cited_by_data.get("table", [{}])[0].get("citations", {}).get("all", 0) 
-                sql = "INSERT INTO authors (author_id, author_name, author_url, cited_by, faculty, program_studi) VALUES (%s, %s, %s, %s, %s, %s)"
-                val = (author_id, author_name, author_url, all_citations, faculty, program_studi)
+                sql = "INSERT INTO authors (author_id, author_name, author_url, faculty, program_studi) VALUES (%s, %s, %s, %s, %s)"
+                val = (author_id, author_name, author_url, faculty, program_studi)
                 mycursor.execute(sql, val)
                 mydb.commit()
             else:
-                print(f"Author dengan ID {author_id} sudah ada dalam tabel authors.")
+                print(f"Author dengan author_id {author_id} sudah ada dalam tabel authors.")
 
-            # Jika author_id sudah ada dalam tabel authors, lanjutkan dengan memasukkan artikel ke dalam tabel articles
-            sql = "INSERT INTO articles (citation_id, title, authors_article, year, citations, url_article, author_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            val = (citation_id, title, authors, year, cited_by_value, url_article, author_id)
-            mycursor.execute(sql, val)
-            mydb.commit()
+            # Setelah memastikan author ada, masukkan artikel
+            if not article_exists(citation_id):
+                sql = "INSERT INTO articles (citation_id, title, authors_article, year, citations, url_article, author_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                val = (citation_id, title, authors, year, cited_by_value, url_article, author_id)
+                mycursor.execute(sql, val)
+                mydb.commit()
+            else:
+                print(f"Artikel dengan citation_id {citation_id} sudah ada dalam tabel articles.")
+
+            if not citation_exists(citation_id):
+                citation_id = article.get("citation_id", "")
+                sql = "INSERT INTO citations (citation_id, year, author_id) VALUES (%s, %s, %s)"
+                val = (citation_id, year, author_id)
+                mycursor.execute(sql, val)
+                mydb.commit()
+            else:
+                print(f"Sitasi dengan ID {citation_id} sudah ada dalam tabel citations.")
+
+            if not ct_author_exists(author_id):
+                sql = "INSERT INTO ct_authors (cited_by, author_id) VALUES (%s, %s)"
+                val = (all_citations, author_id)
+                mycursor.execute(sql, val)
+                mydb.commit()
+            else:
+                print(f"sitasi author dengan ID {author_id} sudah ada dalam tabel ct_authors.")
+
 
         # Tambahkan nilai start untuk pencarian selanjutnya
         start += 100  
@@ -108,10 +129,39 @@ def author_exists(author_id):
 
 def article_exists(citation_id):
     sql = "SELECT * FROM articles WHERE citation_id = %s"
-    val = (citation_id)
+    val = (citation_id),
     mycursor.execute(sql, val)
     result = mycursor.fetchall()  # Baca dan kosongkan hasil query sebelumnya
     return True if result else False
+
+def citation_exists(citation_id):
+    sql = "SELECT * FROM citations WHERE citation_id = %s"
+    val = (citation_id,)
+    mycursor.execute(sql,val)
+    result = mycursor.fetchall()
+    return True if result else False
+
+def ct_author_exists(author_id):
+    sql = "SELECT * FROM ct_authors WHERE author_id = %s"
+    val = (author_id,)
+    mycursor.execute(sql,val)
+    result = mycursor.fetchall()
+    return True if result else False
+
+
+@app.route('/citation_data', methods=['GET'])
+def citation_data():
+    # Mengambil total citation_id berdasarkan tahun
+    sql = "SELECT year, COUNT(citation_id) as total FROM citations GROUP BY year ORDER BY year"
+    mycursor.execute(sql)
+    result = mycursor.fetchall()
+
+    # Mengonversi hasil ke dalam format JSON yang sesuai
+    years = [row[0] for row in result]
+    totals = [row[1] for row in result]
+
+    return jsonify({"years": years, "totals": totals})
+
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
@@ -136,7 +186,14 @@ def dashboard():
         mycursor.execute("SELECT COUNT(*) FROM authors WHERE faculty = %s", (name,))
         faculty_counts.append(mycursor.fetchone()[0])
 
-    return render_template('dashboard.html', authors=authors, faculty_names=faculty_names, faculty_counts=faculty_counts, selected_faculty=faculty, selected_program_studi=program_studi)
+        # Retrieve the total counts for Authors, Articles, and Citations
+    mycursor.execute("SELECT COUNT(*) FROM authors")
+    total_authors = mycursor.fetchone()[0]
+    
+    mycursor.execute("SELECT COUNT(*) FROM articles")
+    total_articles = mycursor.fetchone()[0]
+
+    return render_template('dashboard.html', total_authors=total_authors, total_articles=total_articles, authors=authors, faculty_names=faculty_names, faculty_counts=faculty_counts, selected_faculty=faculty, selected_program_studi=program_studi)
 
 ARTICLES_PER_PAGE = 10
 
@@ -149,6 +206,7 @@ def jinja2_max(val1, val2):
     return max(val1, val2)
 
 @app.route('/articles', methods=['GET'])
+
 def articles():
     faculty = request.args.get('faculty', '')
     author_id = request.args.get('author_id', '')
@@ -207,6 +265,8 @@ def get_articles():
     articles = mycursor.fetchall()
     articles_list = [{"title": article[0], "url": article[1]} for article in articles]
     return jsonify({"articles": articles_list})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

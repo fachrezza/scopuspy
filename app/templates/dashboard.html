@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -26,15 +28,42 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/articles">Articles</a>
                 </li>
+                
             </ul>
         </div>
     </nav>
 
+
+
     <div class="container mt-5">
-        <h1 class="mb-4">Dashboard</h1>
+        <h1 class="dashboard-title">Dashboard</h1>
+        
+        <div class="card-container">
+            <div class="card">
+                <div class="card-content">
+                    <h2 class="card-title">
+                        <i class="bi bi-people"></i> Authors
+                        <p class="card-text display-4">{{ total_authors }}</p>
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-content">
+                    
+                    <h2 class="card-title">
+                        <i class="bi bi-file-earmark"></i> Journals
+                        <p class="card-text display-4">{{ total_articles }}</p>
+                    </h2>
+                    
+                </div>
+            </div>
+        </div>
+
+
         <form action="/dashboard" method="get" class="form-inline mb-4">
             <label for="faculty" class="mr-2">Filter Fakultas:</label>
-            <select id="faculty" name="faculty" class="form-control mr-2" onchange="updateProgramStudi(this.value)">
+            <select id="faculty" name="faculty" class="form-control mr-2" onchange="updateProgramStudi(this.value); saveSelection();">
                 <option value="">------------ PILIH FAKULTAS ------------</option>
                 <option value="Teknik" {% if selected_faculty == 'Teknik' %}selected{% endif %}>Fakultas Teknik</option>
                 <option value="Ilmu Sosial dan Ilmu Politik" {% if selected_faculty == 'Ilmu Sosial dan Ilmu Politik' %}selected{% endif %}>Fakultas Ilmu Sosial dan Ilmu Politik</option>
@@ -45,13 +74,14 @@
                 <option value="Pendidikan Bahasa" {% if selected_faculty == 'Pendidikan Bahasa' %}selected{% endif %}>Fakultas Pendidikan Bahasa</option>
                 <option value="Ekonomi dan Bisnis" {% if selected_faculty == 'Ekonomi dan Bisnis' %}selected{% endif %}>Fakultas Ekonomi dan Bisnis</option>
             </select>
-
+        
             <label for="program_studi" class="mr-2">Program Studi:</label>
-            <select id="program_studi" name="program_studi" class="form-control mr-2" onchange="this.form.submit()">
+            <select id="program_studi" name="program_studi" class="form-control mr-2" onchange="this.form.submit(); saveSelection();">
                 <option value="">------------ PILIH PROGRAM STUDI ------------</option>
                 <!-- Options will be populated by JavaScript -->
             </select>
         </form>
+
 
         <h2>Authors</h2>
         <table class="table table-striped table-bordered">
@@ -61,7 +91,6 @@
                     <th>Author Name</th>
                     <th>Faculty</th>
                     <th>Program Studi</th>
-                    <th>Cited By</th>
                     <th>URL</th>
                 </tr>
             </thead>
@@ -70,29 +99,69 @@
                 <tr>
                     <td>{{ author[0] }}</td>
                     <td>{{ author[1] }}</td>
-                    <td>{{ author[4] }}</td>
-                    <td>{{ author[5] }}</td>
                     <td>{{ author[3] }}</td>
+                    <td>{{ author[4] }}</td>
                     <td><a href="{{ author[2] }}" target="_blank">Link</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <h2>Faculty Chart</h2>
-        <canvas id="facultyChart"></canvas>
+        <h2>Article Chart</h2>
+        <div class="chart-ct">
+            <canvas id="myChart"></canvas>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+        <script>
+            fetch('/citation_data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok " + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.years,
+                            datasets: [{
+                                label: 'total of Articles',
+                                data: data.totals,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching citation data:', error));
+
+        </script>
+        
+        
+
     </div>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
     <!-- Chart.js Script -->
     <script>
         // Define the faculties and their corresponding program studi
         const fakultasProgramStudi = {
             "Teknik": ["Teknologi Informasi", "Teknik Elektro", "Teknik Sipil", "Teknik Mesin"],
-            "Ilmu Sosial dan Ilmu Politik": ["Ilmu Pemerintahan", "Ilmu HUbungan Internasional", "Ilmu Komunikasi"],
+            "Ilmu Sosial dan Ilmu Politik": ["Ilmu Pemerintahan", "Ilmu Hubungan Internasional", "Ilmu Komunikasi"],
             "Kedokteran dan Ilmu Kesehatan": ["Kedokteran Umum", "Keperawatan"],
             "Pertanian": ["Agroteknologi", "Agribisnis"],
             "Agama Islam": ["Pendidikan Agama Islam", "Syariah"],
@@ -100,12 +169,12 @@
             "Pendidikan Bahasa": ["Pendidikan Bahasa Inggris", "Pendidikan Bahasa Indonesia"],
             "Ekonomi dan Bisnis": ["Manajemen", "Akuntansi"]
         };
-
-        // Function to update the program studi dropdown based on the selected faculty
+    
+        // Untuk menampilkan dropdown dan mengupdate program studi
         function updateProgramStudi(fakultas) {
             const programStudiSelect = document.getElementById('program_studi');
             programStudiSelect.innerHTML = '<option value="">------------ PILIH PROGRAM STUDI ------------</option>';
-
+    
             if (fakultasProgramStudi[fakultas]) {
                 fakultasProgramStudi[fakultas].forEach(function(programStudi) {
                     const option = document.createElement('option');
@@ -114,13 +183,29 @@
                     programStudiSelect.appendChild(option);
                 });
             }
+    
+            // Memulihkan pilihan program studi yang tersimpan
+            const savedProgramStudi = localStorage.getItem('selectedProgramStudi');
+            if (savedProgramStudi) {
+                programStudiSelect.value = savedProgramStudi;
+            }
         }
-
-        // Initialize the program studi dropdown if a faculty is already selected
-        document.addEventListener('DOMContentLoaded', function() {
+    
+        // Menyimpan pilihan ke localStorage
+        function saveSelection() {
             const selectedFaculty = document.getElementById('faculty').value;
-            if (selectedFaculty) {
-                updateProgramStudi(selectedFaculty);
+            const selectedProgramStudi = document.getElementById('program_studi').value;
+    
+            localStorage.setItem('selectedFaculty', selectedFaculty);
+            localStorage.setItem('selectedProgramStudi', selectedProgramStudi);
+        }
+    
+        // Memulihkan pilihan yang disimpan saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedFaculty = localStorage.getItem('selectedFaculty');
+            if (savedFaculty) {
+                document.getElementById('faculty').value = savedFaculty;
+                updateProgramStudi(savedFaculty);
             }
         });
     </script>
