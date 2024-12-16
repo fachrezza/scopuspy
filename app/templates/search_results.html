@@ -37,7 +37,7 @@
     <ul>
         <li>
             <h2>Author: {{ author.get('name', 'Unknown') }}</h2>
-            <p>Profile URL: <a href="{{ author.get('url', '#') }}">{{ author.get('url', 'Not available') }}</a></p>
+            <p>Profile URL: <a href="{{ search_metadata.get('google_scholar_author_url', '#') }}">{{ search_metadata.get('google_scholar_author_url', '#') }}</a></p>
         </li>
         <li>
             <h2>Total Citations (All): {{cited_by.get("table", [{}])[0].get("citations", {}).get("all", 0)}}</h2>
