@@ -59,9 +59,7 @@ def fetch_and_store_author_data(author_id):
         articles = results.get("articles", [])
         all_citations = cited_by_data.get("table", [{}])[0].get("citations", {}).get("all", 0)
         
-        # Ambil author_name dan author_url
-        author_name = author.get("name", "")
-        author_url = search_data.get("google_scholar_author_url", "")
+
 
         if not articles:
             break
@@ -79,6 +77,9 @@ def fetch_and_store_author_data(author_id):
                 year = None if not year else int(year)  # Pastikan `year` integer atau None
                 cited_by_value = article.get("cited_by", {}).get("value") or 0  # Nilai 0 jika tidak ada
                 url_article = article.get("link", "")
+                # Ambil author_name dan author_url
+                author_name = author.get("name", "")
+                author_url = search_data.get("google_scholar_author_url", "")
 
                 # Masukkan artikel jika belum ada
                 if not article_exists(citation_id):
@@ -97,6 +98,13 @@ def fetch_and_store_author_data(author_id):
                     cited_by_value=cited_by_value,
                     date_crawling=current_date
                 )
+
+                sql = """
+                UPDATE authors SET author_name = %s WHERE author_id = %s
+                """
+                val = (author_name, author_id)
+                mycursor.execute(sql, val)
+                mydb.commit()
 
                 # Relasi antara author dan artikel
                 if not authors_articles_exists(author_id, citation_id):
@@ -198,6 +206,7 @@ def article_exists(citation_id):
     sql = "SELECT 1 FROM articles WHERE citation_id = %s"
     mycursor.execute(sql, (citation_id,))
     return mycursor.fetchone() is not None
+
 
 def citation_exists(citation_id):
     sql = "SELECT 1 FROM citations WHERE citation_id = %s"

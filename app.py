@@ -9,7 +9,7 @@ import pytz
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
-api_key = '372866610a37a1d503ab9ed7f66eea5a3a009f643c9c9cbaff8174f9dc02deb1'
+api_key = 'e78b48857b1889d41ead1b7acecd713a5551d6aaaa05091f3d65e3df79a6e288'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 filename = os.path.join(dir_path, 'test_log.log')
@@ -61,9 +61,7 @@ def fetch_and_store_author_data(author_id):
         citation_after = None
         citation_total = None
         
-        # Ambil author_name dan author_url
-        author_name = author.get("name", "")
-        author_url = search_data.get("google_scholar_author_url", "")
+
 
         if not articles:
             break
@@ -91,6 +89,20 @@ def fetch_and_store_author_data(author_id):
                     val = (citation_id, title, authors, year, cited_by_value, url_article, author_id)
                     mycursor.execute(sql, val)
                     mydb.commit()
+                # Ambil author_name dan author_url
+                author_name = author.get("name", "")
+                author_url = search_data.get("google_scholar_author_url", "")
+
+                #Menambahkan/update nama author, link author, dan total sitasi author berdasarkan author_id yang di input secara manual
+                try:
+                    # Jika author_id belum ada, masukkan data baru
+                    sql = "UPDATE authors SET author_name = %s, author_url = %s, author_citations = %s WHERE author_id = %s"
+                    val = (author_name, author_url, all_citations, author_id)
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                    logging.info(f"Inserted author_name {author_name} where author_id {author_id}")
+                except mysql.connector.Error as db_err:
+                    logging.error(f"Error inserting into ct_authors: {db_err}")
 
                 if not journal_exists(citation_id, title):
                     sql = """
